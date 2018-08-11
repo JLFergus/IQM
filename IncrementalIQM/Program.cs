@@ -7,6 +7,26 @@ namespace IncrementalIQM
 {
     class Program
     {
+
+        static void InsertData(List<int> data, int newItem)
+        {
+            // Rather than just adding the new item to the end, then re-sorting the whole list, I'm doing a single insertion
+            // List.Sort() uses an insertion sort for small datasets anyway, so I'm effectively skipping to the very last step in the sort.
+            var inserted = false;
+            for (var i = 0; i<data.Count; i++)
+            {
+                if(data[i] >= newItem)
+                {
+                    data.Insert(i, newItem);
+                    inserted = true;
+                    break;
+                }
+            }
+            // if we make it all the way to the end of the list without inserting, that means this is the largest number, so we just add it to the end
+            if (!inserted)
+                data.Add(newItem);
+        }
+
         static void Main()
         {
             DateTime beforeTime = DateTime.Now;
@@ -16,40 +36,46 @@ namespace IncrementalIQM
                 List<int> data = new List<int>();
                 using (StreamReader sr = new StreamReader("data.txt"))
                 {
-                    String line;
-                    while ((line = sr.ReadLine()) != null)
+                    using (StreamWriter sw = new StreamWriter("data.csv"))
                     {
-                        data.Add(Convert.ToInt32(line));
-                        data.Sort();
-                        
-                        if (data.Count() >= 4)
+                        sw.WriteLine("Total Items, Mean, Calculated Items");
+
+                        String line;
+                        while ((line = sr.ReadLine()) != null)
                         {
-                            double q = data.Count() / 4.0;
-                            int i = (int)Math.Ceiling(q) - 1;
-                            int c = (int)Math.Floor(q*3) - i + 1;
+                            InsertData(data, Convert.ToInt32(line));
 
-                            List<int> ys = data.GetRange(i, c);
-                            double factor = q - ((ys.Count() / 2.0) - 1);
-                            
-                            int sum = 0;
-                            
-                            var listEnumerator = ys.GetEnumerator();
-                            for (var j = 0; listEnumerator.MoveNext() == true; j++)
+                            if (data.Count() >= 4)
                             {
-                                if (j == 0)
-                                {
-                                    continue;
-                                }
-                                else if (j == (ys.Count() - 1))
-                                {
-                                    break; 
-                                }
-                               
-                                sum += listEnumerator.Current;
-                            }
+                                double q = data.Count() / 4.0;
+                                int i = (int)Math.Ceiling(q) - 1;
+                                int c = (int)Math.Floor(q * 3) - i + 1;
 
-                            double mean = (sum + (ys.First() + ys.Last()) * factor) / (2 * q);
-                            Console.WriteLine("Index => {0}, Mean => {1:F2}", data.Count(), mean);
+
+                                List<int> ys = data.GetRange(i, c);
+                                double factor = q - ((ys.Count() / 2.0) - 1);
+
+                                int sum = 0;
+
+                                var listEnumerator = ys.GetEnumerator();
+                                for (var j = 0; listEnumerator.MoveNext() == true; j++)
+                                {
+                                    if (j == 0)
+                                    {
+                                        continue;
+                                    }
+                                    else if (j == (ys.Count() - 1))
+                                    {
+                                        break;
+                                    }
+
+                                    sum += listEnumerator.Current;
+                                }
+
+                                double mean = (sum + (ys.First() + ys.Last()) * factor) / (2 * q);
+                                sw.WriteLine($"{data.Count}, {mean}, {ys.Count}");
+                                Console.WriteLine("Index => {0}, Mean => {1:F2}", data.Count(), mean);
+                            }
                         }
                     }
                 }
@@ -63,6 +89,7 @@ namespace IncrementalIQM
             DateTime afterTime = DateTime.Now;
             TimeSpan diff = afterTime - beforeTime;
             Console.WriteLine("Total Milliseconds: {0}", diff.TotalMilliseconds);
+            Console.ReadLine();
         }
     }
 }
