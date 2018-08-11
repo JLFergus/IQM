@@ -14,12 +14,13 @@ namespace IncrementalIQM
         /// <param name="newItem">The new item to be inserted</param>
         static void InsertData(List<int> data, int newItem)
         {
-            // Rather than just adding the new item to the end, then re-sorting the whole list, I'm doing a single insertion
-            // List.Sort() uses an insertion sort for small datasets anyway, so I'm effectively skipping to the very last step in the sort.
+            /* Rather than just adding the new item to the end, then re-sorting the whole list, I'm doing a single insertion.
+               List.Sort() uses an insertion sort for small datasets anyway, so I'm effectively skipping to the very last step in the sort.
+               This is the largest optimization, reducing runtime by about 60% */
             var inserted = false;
-            for (var i = 0; i<data.Count; i++)
+            for (var i = 0; i < data.Count; i++)
             {
-                if(data[i] >= newItem)
+                if (data[i] >= newItem)
                 {
                     data.Insert(i, newItem);
                     inserted = true;
@@ -33,86 +34,70 @@ namespace IncrementalIQM
         }
 
         /// <summary>
-        /// Calculates the Interquartile Mean (ie. the mean of the middle 50%) of a dataset.
+        /// Calculates the Interquartile Mean (ie. the mean of the middle 50%) of a dataset. 
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        static double CalculateIQM(List<int> data, StreamWriter sw)
+        static double CalculateTrueIQM(List<int> data)
         {
             // extract the middle half
             var oneQuarter = (int)Math.Floor(data.Count / 4.0);
-            var InterQuartile = data.Count - (2 * oneQuarter);
-            var quartileData = data.GetRange(oneQuarter, InterQuartile);
+            var innerHalfCount = data.Count - (2 * oneQuarter);
 
-            // calculate the mean
-            //var sum = 0;
-            //quartileData.ForEach(item => sum += item);
+            // because lists are zero-indexed, our oneQuarter value is also the index of the first value in our quartile set
+            var quartileData = data.GetRange(oneQuarter, innerHalfCount);
 
             var sum = quartileData.Sum();
-            var mean = sum / (double) quartileData.Count;
-
-            // todo: I'm putting the output in here for now, but only because I want to see the quartile count and that's no longer accessible
-            sw.WriteLine($"{data.Count}, {mean}, {quartileData.Count}");
-            Console.WriteLine("Index => {0}, Mean => {1:F2}", data.Count(), mean);
+            var mean = sum / (double)quartileData.Count;
 
             return mean;
+        }
+
+        /// <summary>
+        /// Calculates a modified Interquartile Mean. It does some tricky calculations that I don't fully understand to come up with 
+        /// a value similar to the IQM, but usually off by a fraction.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        static double CalculateModifiedIQM(List<int> data)
+        {
+            double oneQuarter = data.Count() / 4.0;
+            int startIndex = (int)Math.Ceiling(oneQuarter) - 1;
+            int recordsToCount = (int)Math.Floor(oneQuarter * 3) - startIndex + 1;
+
+
+            var innerHalf = data.GetRange(startIndex, recordsToCount);
+            var factor = oneQuarter - ((innerHalf.Count() / 2.0) - 1);
+
+            // chop off the ends and sum up the rest. 
+            var subsetSum = innerHalf.GetRange(1, innerHalf.Count - 2).Sum();
+
+            double modifiedMean = (subsetSum + (innerHalf.First() + innerHalf.Last()) * factor) / (2 * oneQuarter);
+
+            return modifiedMean;
         }
 
         static void Main()
         {
             DateTime beforeTime = DateTime.Now;
-            
+
             try
             {
                 List<int> data = new List<int>();
                 using (StreamReader sr = new StreamReader("data.txt"))
                 {
-                    using (StreamWriter sw = new StreamWriter("data.csv"))
+                    var line = "";
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        sw.WriteLine("Total Items, Mean, Calculated Items");
-
-                        String line;
-                        while ((line = sr.ReadLine()) != null)
+                        InsertData(data, Convert.ToInt32(line));
+                        if (data.Count >= 4)
                         {
-                            InsertData(data, Convert.ToInt32(line));
-                            if (data.Count >= 4)
-                            {
-                                var mean = CalculateIQM(data, sw);
-                                // todo: the output will go here once it's cleaned up
-                            }
+                            //var mean = CalculateTrueIQM(data);
+                            //Console.WriteLine($"Index => {data.Count()}, Mean => {mean:F2}");
 
-                            //if (data.Count() >= 4)
-                            //{
-                            //    double q = data.Count() / 4.0;
-                            //    int i = (int)Math.Ceiling(q) - 1;
-                            //    int c = (int)Math.Floor(q * 3) - i + 1;
+                            var modifiedMean = CalculateModifiedIQM(data);
+                            Console.WriteLine($"Index => {data.Count()}, Mean => {modifiedMean:F2}");
 
-
-                            //    List<int> ys = data.GetRange(i, c);
-                            //    double factor = q - ((ys.Count() / 2.0) - 1);
-
-                            //    int sum = 0;
-
-                            //    var listEnumerator = ys.GetEnumerator();
-                            //    for (var j = 0; listEnumerator.MoveNext() == true; j++)
-                            //    {
-                            //        if (j == 0)
-                            //        {
-                            //            continue;
-                            //        }
-                            //        else if (j == (ys.Count() - 1))
-                            //        {
-                            //            break;
-                            //        }
-
-                            //        sum += listEnumerator.Current;
-                            //    }
-
-                            //    double mean = (sum + (ys.First() + ys.Last()) * factor) / (2 * q);
-                            //    sw.WriteLine($"{data.Count}, {mean}, {ys.Count}");
-                            //    Console.WriteLine("Index => {0}, Mean => {1:F2}", data.Count(), mean);
-
-                            // }
                         }
                     }
                 }
@@ -126,7 +111,6 @@ namespace IncrementalIQM
             DateTime afterTime = DateTime.Now;
             TimeSpan diff = afterTime - beforeTime;
             Console.WriteLine("Total Milliseconds: {0}", diff.TotalMilliseconds);
-            Console.ReadLine();
         }
     }
 }
