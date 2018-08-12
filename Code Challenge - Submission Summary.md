@@ -36,4 +36,4 @@ The second optimization came in the form of replacing the iterator traversal wit
 
 It's also worth noting that the modified method isn't quite the same as a standard Interquartile Mean, in that it accounts for a fraction of the edges when the total dataset isn't divisible by 4. I've included the standard method here, in addition to the original, unaltered method originally presented in the code sample, and my refactor of said method, which is both more readable and slightly more performant than the original.
 
-**TOTAL PEFORMANCE GAIN:** As mentioned above, replacing the "Add and sort" insertion method with one that inserts in place reduced runtime by nearly 60%. The fully optimized algorithm reduces runtime by 81%, and completes in about 30 seconds. 
+**TOTAL PEFORMANCE GAIN:** As mentioned above, replacing the "Add and sort" insertion method with one that inserts in place reduced runtime by nearly 60%. The fully optimized algorithm results in an 82% performance gain, and completes in about 30 seconds. 
