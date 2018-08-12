@@ -32,6 +32,8 @@ In the original sample, everything was hard-coded, so changing values would be d
  
 By replacing the sort with an in-line insertion, I'm essentially skipping all the irrelevant, redundant sort comparisons. In initial test runs this change alone resulted in a more than 60% reduction in runtime.
 
-The second optimization came in the form of replacing the iterator traversal with more simple summation algorithm, and some minor refactors with 
+The second optimization came in the form of replacing the iterator traversal with more simple summation algorithm, and some minor refactors to simplify the algorithm itself.
 
 It's also worth noting that the modified method isn't quite the same as a standard Interquartile Mean, in that it accounts for a fraction of the edges when the total dataset isn't divisible by 4. I've included the standard method here, in addition to the original, unaltered method originally presented in the code sample, and my refactor of said method, which is both more readable and slightly more performant than the original.
+
+**TOTAL PEFORMANCE GAIN:** As mentioned above, replacing the "Add and sort" insertion method with one that inserts in place reduced runtime by nearly 60%. The fully optimized algorithm reduces runtime by 81%, and completes in about 30 seconds. 
