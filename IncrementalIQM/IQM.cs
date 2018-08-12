@@ -8,35 +8,9 @@ namespace IncrementalIQM
     public static class IQM
     {
         /// <summary>
-        /// Inserts a new item into the correct sorted position in an existing list
-        /// </summary>
-        /// <param name="data">The existing list</param>
-        /// <param name="newItem">The new item to be inserted</param>
-        public static void InsertData(List<int> data, int newItem)
-        {
-            /* Rather than just adding the new item to the end, then re-sorting the whole list, I'm doing a single insertion.
-               List.Sort() uses an insertion sort for small datasets anyway, so I'm effectively skipping to the very last step in the sort.
-               This is the largest optimization, reducing runtime by about 60% */
-            var inserted = false;
-            for (var i = 0; i < data.Count; i++)
-            {
-                if (data[i] >= newItem)
-                {
-                    data.Insert(i, newItem);
-                    inserted = true;
-                    break;
-                }
-            }
-            /* if we make it all the way to the end of the list without inserting, 
-            that means this is the largest number, so we just add it to the end */
-            if (!inserted)
-                data.Add(newItem);
-        }
-
-        /// <summary>
         /// Calculates the Interquartile Mean (ie. the mean of the middle 50%) of a dataset. 
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The data to be used in the calculation - MUST BE PRE-SORTED</param>
         /// <returns></returns>
         public static double CalculateTrueIQM(List<int> data)
         {
@@ -57,7 +31,7 @@ namespace IncrementalIQM
         /// Calculates a modified Interquartile Mean. It does some tricky calculations that I don't fully understand to come up with 
         /// a value similar to the IQM, but usually off by a fraction.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The data to be used in the calculation - MUST BE PRE-SORTED</param>
         /// <returns></returns>
         public static double CalculateModifiedIQM(List<int> data)
         {
@@ -80,7 +54,7 @@ namespace IncrementalIQM
         /// <summary>
         /// Calcuates modified Interquartile Mean, using the original, unmodified algorithm. Useful for side-by-side testing
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The data to be used in the calculation - MUST BE PRE-SORTED</param>
         /// <returns></returns>
         public static double CalculateOriginalIQM(List<int> data)
         {
