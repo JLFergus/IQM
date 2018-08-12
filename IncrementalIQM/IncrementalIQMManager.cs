@@ -1,22 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace IncrementalIQM
 {
-    public enum CalculationType
-    {
-        Original,
-        Modified,
-        True
-    }
-    public enum InsertionType
-    {
-        InsertInPlace,
-        AddAndSort
-    }
+    public delegate void HandleResultsMethod(int totalRecords, double iqm);
 
     public class IncrementalIQMManager
     {
@@ -24,22 +12,28 @@ namespace IncrementalIQM
         public CalculationType CalcType { get; set; }
         public InsertionType InsertType { get; set; }
 
+        private HandleResultsMethod HandleResults;
+
         private delegate void InsertMethod(List<int> data, int newItem);
         private delegate double CalculateMethod(List<int> data);
 
         #region Constructors
-        public IncrementalIQMManager(string path, CalculationType calcType = CalculationType.Modified,
-            InsertionType insertionType = InsertionType.InsertInPlace)
+        public IncrementalIQMManager(string path, 
+            CalculationType calcType = CalculationType.Modified,
+            InsertionType insertionType = InsertionType.InsertInPlace,
+            HandleResultsMethod handleResults = null)
         {
             FilePath = path;
             CalcType = calcType;
             InsertType = insertionType;
+            HandleResults = handleResults ?? HandleResultsDefault;
         }
         public IncrementalIQMManager()
-            : this(null, CalculationType.Modified, InsertionType.InsertInPlace) { }
-
+            : this(null, CalculationType.Modified, InsertionType.InsertInPlace, null) { }
         public IncrementalIQMManager(string path)
-            : this(path, CalculationType.Modified, InsertionType.InsertInPlace) { }
+            : this(path, CalculationType.Modified, InsertionType.InsertInPlace, null) { }
+        public IncrementalIQMManager(string path, HandleResultsMethod handleResults)
+                    : this(path, CalculationType.Modified, InsertionType.InsertInPlace, handleResults) { }
 
         #endregion
 
@@ -108,8 +102,8 @@ namespace IncrementalIQM
             {
                 case CalculationType.Original:
                     return IQM.CalculateOriginalIQM;
-                case CalculationType.True:
-                    return IQM.CalculateTrueIQM;
+                case CalculationType.Standard:
+                    return IQM.CalculateStandardIQM;
                 default:
                     return IQM.CalculateModifiedIQM;
             }
@@ -141,7 +135,7 @@ namespace IncrementalIQM
                         if (data.Count >= 4)
                         {
                             var mean = CalculateMean(data);
-                            Console.WriteLine($"Index => {data.Count}, Mean => {mean:F2}");
+                            HandleResults(data.Count, mean);
                         }
                     }
                 }
@@ -165,5 +159,10 @@ namespace IncrementalIQM
         public double Execute(string path, CalculationType calcType) { return Execute(path, calcType, InsertType); }
 
         #endregion
+
+        public void HandleResultsDefault(int totalRecords, double iqm)
+        {
+            Console.WriteLine($"Index => {totalRecords}, Mean => {iqm:F2}");
+        }
     }
 }

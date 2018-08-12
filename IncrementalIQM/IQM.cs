@@ -12,7 +12,7 @@ namespace IncrementalIQM
         /// </summary>
         /// <param name="data">The data to be used in the calculation - MUST BE PRE-SORTED</param>
         /// <returns></returns>
-        public static double CalculateTrueIQM(List<int> data)
+        public static double CalculateStandardIQM(List<int> data)
         {
             // extract the middle half
             var oneQuarter = (int)Math.Floor(data.Count / 4.0);
@@ -28,26 +28,25 @@ namespace IncrementalIQM
         }
 
         /// <summary>
-        /// Calculates a modified Interquartile Mean. It does some tricky calculations that I don't fully understand to come up with 
-        /// a value similar to the IQM, but usually off by a fraction.
+        /// Calculates a modified Interquartile Mean, which accounts for the fractions at the edge of the quartile, 
+        /// rather than truncating like standard IQM does
         /// </summary>
         /// <param name="data">The data to be used in the calculation - MUST BE PRE-SORTED</param>
         /// <returns></returns>
         public static double CalculateModifiedIQM(List<int> data)
         {
-            double oneQuarter = data.Count() / 4.0;
-            int startIndex = (int)Math.Ceiling(oneQuarter) - 1;
-            int recordsToCount = (int)Math.Floor(oneQuarter * 3) - startIndex + 1;
+            var oneQuarter = data.Count / 4.0;
+            var startIndex = (int) Math.Ceiling(oneQuarter); 
+            var recordsToCount = data.Count - (startIndex * 2); 
 
-
-            var innerHalf = data.GetRange(startIndex, recordsToCount);
-            var factor = oneQuarter - ((innerHalf.Count() / 2.0) - 1);
-
-            // chop off the ends and sum up the rest. 
-            var subsetSum = innerHalf.GetRange(1, innerHalf.Count - 2).Sum();
-
-            double modifiedMean = (subsetSum + (innerHalf.First() + innerHalf.Last()) * factor) / (2 * oneQuarter);
-
+            var innerHalf = data.GetRange(startIndex, recordsToCount); 
+            // the remaining fraction to be added from the edge values, yielding zero if oneQuarter is a whole number
+            var edgeFraction = (1 - (oneQuarter - Math.Floor(oneQuarter))) % 1; 
+            var edgeValues = (data[startIndex - 1] + data[startIndex + recordsToCount]) * edgeFraction; 
+            // get the sum, with the edges
+            var modifiedSum = innerHalf.Sum() + edgeValues; 
+            // get the modified IQM, which SHOULD be as close as possible to the true inner half
+            var modifiedMean = modifiedSum / (oneQuarter * 2); 
             return modifiedMean;
         }
 

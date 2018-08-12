@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums.cs" />
     <Compile Include="IncrementalIQMManager.cs" />
     <Compile Include="IQM.cs" />
     <Compile Include="Program.cs" />
