@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace IncrementalIQM.Test
 {
     [TestClass]
-    public class IIQMManagerTests
+    [TestCategory("Unit")]
+    public class UnitTests
     {
         // I could probably configure the tests to copy the data file into the debug folder,
         // but I don't have time for that, and these are tests
@@ -29,6 +30,21 @@ namespace IncrementalIQM.Test
             Assert.AreEqual(customIIQM.FilePath, TestDataPath);
             Assert.AreEqual(customIIQM.CalcType, CalculationType.Standard);
             Assert.AreEqual(customIIQM.InsertType, InsertionType.AddAndSort);
+        }
+
+        [TestMethod]
+        public void Execute_UsesPassedHandler()
+        {
+            var runs = 0;
+            void IncrementRuns(int totalRecords, double iqm)
+            {
+                runs++;
+            }
+
+            var incrementingIQM = new IncrementalIQMManager(TestDataPath, IncrementRuns);
+            incrementingIQM.Execute();
+
+            Assert.AreEqual(runs, 17);
         }
 
         [TestMethod]
