@@ -1,6 +1,6 @@
 # Dexcom Code Challenge -- Crunching Large Data Sets
-Submission by Jesse Ferguson 2018/08/12
 -------------------------------------------------------
+Submission by Jesse Ferguson 2018/08/12
 
 ## BACKGROUND:
 
