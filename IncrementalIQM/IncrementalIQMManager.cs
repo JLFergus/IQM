@@ -112,13 +112,15 @@ namespace IncrementalIQM
         #endregion
 
         #region Execute Methods
-        public double Execute(string filePath, CalculationType calcType, InsertionType insertType)
+        public double Execute(string filePath, CalculationType calcType, InsertionType insertType,
+            HandleResultsMethod handleResults = null)
         {
             if (string.IsNullOrEmpty(filePath))
                 throw new ArgumentNullException(paramName: "FilePath", message: "File Path not defined");
 
             var InsertData = SetInsertionMethod(insertType);
             var CalculateMean = SetCalculateMethod(calcType);
+            HandleResults = handleResults ?? HandleResults; // if a new HandleResultsMethod is passed use it
 
             DateTime beforeTime = DateTime.Now;
             
@@ -153,11 +155,14 @@ namespace IncrementalIQM
         }
 
         public double Execute() { return Execute(FilePath, CalcType, InsertType); }
+
         public double Execute(string path) { return Execute(path, CalcType, InsertType); }
         public double Execute(CalculationType calcType) { return Execute(FilePath, calcType, InsertType); }
         public double Execute(InsertionType insertType) { return Execute(FilePath, CalcType, insertType); }
-        public double Execute(string path, CalculationType calcType) { return Execute(path, calcType, InsertType); }
+        public double Execute(HandleResultsMethod handleResults) { return Execute(FilePath, CalcType, InsertType, handleResults); }
 
+        public double Execute(string path, CalculationType calcType) { return Execute(path, calcType, InsertType); }
+        public double Execute(CalculationType calcType, InsertionType insertType) { return Execute(FilePath, calcType, insertType); }
         #endregion
 
         public void HandleResultsDefault(int totalRecords, double iqm)

@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="IIQMManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestResults.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
