@@ -10,8 +10,7 @@ namespace IncrementalIQM
     {
         static void Main()
         {
-            var IQMMgr = new IncrementalIQMManager("data.txt", 
-                (totalRecords, iqm) => Console.WriteLine($"{totalRecords} total Records, IQM: {iqm:F2}"));
+            var IQMMgr = new IncrementalIQMManager("data.txt");
             var totalMs = IQMMgr.Execute();
             Console.WriteLine($"Total Time (milliseconds): {totalMs}");
         }

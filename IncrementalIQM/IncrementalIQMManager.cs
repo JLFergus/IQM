@@ -18,35 +18,28 @@ namespace IncrementalIQM
         AddAndSort
     }
 
-    public delegate void HandleResultsMethod(int totalRecords, double iqm);
-
     public class IncrementalIQMManager
     {
         public string FilePath { get; set; }
         public CalculationType CalcType { get; set; }
         public InsertionType InsertType { get; set; }
-        public HandleResultsMethod HandleResults;
 
         private delegate void InsertMethod(List<int> data, int newItem);
         private delegate double CalculateMethod(List<int> data);
 
         #region Constructors
         public IncrementalIQMManager(string path, CalculationType calcType = CalculationType.Modified,
-            InsertionType insertionType = InsertionType.InsertInPlace, HandleResultsMethod handleMethod = null)
+            InsertionType insertionType = InsertionType.InsertInPlace)
         {
             FilePath = path;
             CalcType = calcType;
             InsertType = insertionType;
-            HandleResults = handleMethod ?? HandleResultsDefault;
         }
         public IncrementalIQMManager()
             : this(null, CalculationType.Modified, InsertionType.InsertInPlace) { }
 
         public IncrementalIQMManager(string path)
             : this(path, CalculationType.Modified, InsertionType.InsertInPlace) { }
-
-        public IncrementalIQMManager(string path, HandleResultsMethod handleMethod)
-            : this(path, CalculationType.Modified, InsertionType.InsertInPlace, handleMethod) { }
 
         #endregion
 
@@ -148,7 +141,7 @@ namespace IncrementalIQM
                         if (data.Count >= 4)
                         {
                             var mean = CalculateMean(data);
-                            HandleResults(data.Count, mean);
+                            Console.WriteLine($"Index => {data.Count}, Mean => {mean:F2}");
                         }
                     }
                 }
@@ -172,10 +165,5 @@ namespace IncrementalIQM
         public double Execute(string path, CalculationType calcType) { return Execute(path, calcType, InsertType); }
 
         #endregion
-
-        private static void HandleResultsDefault(int totalRecords, double iqm)
-        {
-            Console.WriteLine($"Index => {totalRecords}, Mean => {iqm:F2}");
-        }
     }
 }
